@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>214則精選金句 · 最強金句投票</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1209; --paper: #faf6ef; --gold: #c8972a; --gold-light: #f0d080;
+    --teal: #1a6b5a; --muted: #7a6e5f; --border: #ddd4c0; --voted-bg: #e8f4f0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--paper); color: var(--ink); font-family: 'Noto Sans TC', sans-serif; min-height: 100vh; }
+  ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: #f0ece4; } ::-webkit-scrollbar-thumb { background: #c8a86a; border-radius: 3px; }
+
+  /* HEADER */
+  header { text-align: center; padding: 52px 20px 36px; border-bottom: 2px solid var(--border); background: linear-gradient(180deg,#fff9f0 0%,var(--paper) 100%); position: relative; overflow: hidden; }
+  header::before { content:''; position:absolute; inset:0; background:repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(200,151,42,0.05) 60px); pointer-events:none; }
+  .badge { display:inline-block; background:var(--gold); color:#fff; font-size:11px; font-weight:700; letter-spacing:3px; padding:4px 18px; border-radius:2px; margin-bottom:20px; text-transform:uppercase; }
+  header h1 { font-family:'Noto Serif TC',serif; font-size:clamp(26px,5vw,50px); font-weight:900; line-height:1.25; margin-bottom:12px; }
+  header h1 span { color:var(--gold); }
+  header p { color:var(--muted); font-size:14px; line-height:1.9; max-width:440px; margin:0 auto 8px; }
+  .live-badge { display:inline-flex; align-items:center; gap:6px; background:#e8f4f0; border:1px solid #1a6b5a40; border-radius:20px; padding:5px 14px; font-size:12px; color:var(--teal); margin-top:8px; }
+  .live-dot { width:7px; height:7px; border-radius:50%; background:var(--teal); animation:pulse 2s infinite; }
+
+  /* STICKY BAR */
+  .sticky-bar { position:sticky; top:0; z-index:100; background:var(--ink); display:flex; align-items:center; justify-content:space-between; padding:12px 24px; flex-wrap:wrap; gap:12px; box-shadow:0 2px 12px rgba(0,0,0,0.25); }
+  .bar-stats { display:flex; gap:20px; align-items:center; }
+  .bar-stat label { font-size:11px; color:#aaa; letter-spacing:1px; display:block; margin-bottom:2px; }
+  .bar-stat .val { font-family:'Noto Serif TC',serif; font-size:28px; font-weight:900; color:var(--gold-light); line-height:1; }
+  .bar-stat .val.red { color:#e74c3c; }
+  .bar-stat .val.sm { font-size:14px; font-weight:700; color:#ddd; }
+  .bar-stat .val.green { font-size:14px; font-weight:700; color:var(--teal); background:#0d3d2e; padding:2px 10px; border-radius:10px; }
+  .sep { color:#444; font-size:20px; }
+  .btn-rank { background:var(--gold); color:#fff; border:none; padding:9px 22px; border-radius:3px; font-size:13px; font-weight:700; cursor:pointer; letter-spacing:1px; font-family:'Noto Sans TC',sans-serif; transition:background 0.2s; }
+  .btn-rank:hover { background:#b5821e; }
+  .syncing { font-size:12px; color:#888; animation:pulse 1s infinite; }
+
+  /* MAIN */
+  main { max-width:1100px; margin:0 auto; padding:44px 16px 80px; }
+
+  /* CATEGORY */
+  .category { margin-bottom:60px; animation:fadeUp 0.5s ease both; }
+  .cat-header { display:flex; align-items:baseline; gap:14px; margin-bottom:24px; padding-bottom:14px; border-bottom:3px solid var(--ink); }
+  .cat-letter { font-family:'Noto Serif TC',serif; font-size:46px; font-weight:900; line-height:1; }
+  .cat-title { font-family:'Noto Serif TC',serif; font-size:22px; font-weight:700; }
+  .cat-total { font-size:12px; font-weight:700; color:var(--teal); background:#e8f4f0; padding:2px 10px; border-radius:10px; }
+  .cat-info { margin-left:auto; font-size:12px; color:var(--muted); }
+
+  /* GRID */
+  .quotes-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:14px; }
+  .quote-card { border:1.5px solid var(--border); border-left:4px solid var(--border); border-radius:4px; padding:18px 16px 14px; background:#fff; cursor:pointer; transition:all 0.18s; display:flex; flex-direction:column; gap:10px; }
+  .quote-card:hover { border-color:var(--gold); box-shadow:0 4px 18px rgba(200,151,42,0.15); transform:translateY(-2px); }
+  .quote-card.voted { background:var(--voted-bg); border-color:var(--teal); border-left-color:var(--teal); }
+  .quote-card:hover.voted { border-color:var(--teal); }
+  .q-num { font-size:10px; font-weight:700; color:var(--muted); letter-spacing:1px; }
+  .q-text { font-family:'Noto Serif TC',serif; font-size:14px; line-height:1.9; flex:1; }
+  .q-text .first { font-weight:700; font-size:15px; }
+  .q-footer { display:flex; align-items:center; justify-content:space-between; margin-top:4px; }
+  .vote-btn { background:var(--ink); color:#fff; border:none; padding:7px 16px; border-radius:2px; font-size:12px; font-weight:700; cursor:pointer; letter-spacing:0.5px; font-family:'Noto Sans TC',sans-serif; transition:background 0.15s; }
+  .vote-btn:hover { background:var(--teal); }
+  .voted .vote-btn { background:var(--teal); }
+  .vote-btn:disabled { opacity:0.5; cursor:not-allowed; }
+  .q-total { text-align:right; }
+  .q-total .num { font-family:'Noto Serif TC',serif; font-size:22px; font-weight:900; color:var(--teal); line-height:1; }
+  .q-total .lbl { font-size:10px; color:var(--muted); }
+  .q-total .mine { font-size:10px; color:var(--teal); margin-top:2px; }
+
+  /* MODAL */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(26,18,9,0.85); z-index:1000; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(4px); }
+  .modal-overlay.active { display:flex; }
+  .modal { background:var(--paper); max-width:700px; width:100%; max-height:88vh; overflow-y:auto; border-radius:6px; padding:32px 28px; position:relative; animation:modalIn 0.28s cubic-bezier(0.34,1.56,0.64,1); }
+  .modal-close { position:absolute; top:14px; right:16px; background:none; border:none; font-size:22px; cursor:pointer; color:var(--muted); line-height:1; padding:4px 8px; }
+  .modal h2 { font-family:'Noto Serif TC',serif; font-size:24px; font-weight:900; margin-bottom:6px; }
+  .modal-sub { font-size:12px; color:var(--muted); margin-bottom:20px; }
+  .filter-bar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:24px; }
+  .f-btn { background:none; border:1.5px solid var(--border); border-radius:2px; padding:5px 12px; font-size:11px; cursor:pointer; color:var(--muted); font-family:'Noto Sans TC',sans-serif; transition:all 0.15s; }
+  .f-btn.active, .f-btn:hover { background:var(--ink); border-color:var(--ink); color:#fff; }
+  .rank-list { list-style:none; }
+  .rank-item { display:flex; align-items:center; gap:14px; padding:14px 0; border-bottom:1px solid var(--border); animation:fadeUp 0.3s ease both; }
+  .rank-item:last-child { border-bottom:none; }
+  .rank-num { font-family:'Noto Serif TC',serif; font-size:24px; font-weight:900; width:34px; text-align:center; flex-shrink:0; color:var(--muted); }
+  .rank-num.top { font-size:26px; color:inherit; }
+  .rank-content { flex:1; min-width:0; }
+  .rank-qnum { font-size:10px; font-weight:700; color:var(--muted); letter-spacing:1px; margin-bottom:2px; }
+  .rank-text { font-family:'Noto Serif TC',serif; font-size:13px; line-height:1.7; color:var(--ink); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .rank-cat { font-size:10px; font-weight:700; margin-top:3px; }
+  .rank-votes { text-align:right; flex-shrink:0; }
+  .rank-votes .n { font-family:'Noto Serif TC',serif; font-size:26px; font-weight:900; color:var(--teal); line-height:1; }
+  .rank-votes small { font-size:10px; color:var(--muted); display:block; }
+  .no-votes { text-align:center; padding:48px; color:var(--muted); }
+
+  /* TOAST */
+  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--ink); color:#fff; padding:11px 28px; border-radius:3px; font-size:13px; font-weight:500; transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1); z-index:2000; white-space:nowrap; box-shadow:0 4px 20px rgba(0,0,0,0.3); }
+  .toast.show { transform:translateX(-50%) translateY(0); }
+
+  /* LOADING */
+  .loading-screen { display:flex; align-items:center; justify-content:center; height:100vh; flex-direction:column; gap:16px; }
+  .loading-screen p { color:var(--muted); font-size:15px; }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+  @keyframes modalIn { from{opacity:0;transform:scale(0.94) translateY(16px)} to{opacity:1;transform:scale(1) translateY(0)} }
+  @keyframes spin { to{transform:rotate(360deg)} }
+  .spinner { width:32px; height:32px; border:3px solid var(--border); border-top-color:var(--gold); border-radius:50%; animation:spin 0.8s linear infinite; }
+
+  @media(max-width:600px) {
+    .quotes-grid { grid-template-columns:1fr; }
+    .bar-stats { gap:12px; }
+    .modal { padding:24px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="loadingScreen" class="loading-screen">
+  <div class="spinner"></div>
+  <p>連線中...</p>
+</div>
+
+<div id="app" style="display:none">
+
+<header>
+  <div class="badge">精選金句 · 開放投票</div>
+  <h1>214則精選訊息<br><span>最強金句</span>大投票</h1>
+  <p>共 7 大類別・214 則金句<br>每人 <strong>50 票</strong>，投給最觸動你的句子</p>
+  <div class="live-badge">
+    <span class="live-dot"></span>
+    全體累計票數：<strong id="totalVotesDisplay">0</strong> 票
+  </div>
+</header>
+
+<div class="sticky-bar">
+  <div class="bar-stats">
+    <div class="bar-stat">
+      <label>我的剩餘票數</label>
+      <div class="val" id="remainingVal">50</div>
+    </div>
+    <div class="sep">|</div>
+    <div class="bar-stat">
+      <label>我已投</label>
+      <div class="val sm" id="usedVal">0 / 50</div>
+    </div>
+    <div class="sep">|</div>
+    <div class="bar-stat">
+      <label>全體總票數</label>
+      <div class="val green" id="globalVal">🔥 0</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center">
+    <span class="syncing" id="syncingLabel" style="display:none">同步中…</span>
+    <button class="btn-rank" onclick="openModal()">📊 查看排名</button>
+  </div>
+</div>
+
+<main id="mainContent"></main>
+
+</div><!-- #app -->
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h2>🏆 全體金句排名榜</h2>
+    <p class="modal-sub" id="modalSub"></p>
+    <div class="filter-bar" id="filterBar"></div>
+    <ul class="rank-list" id="rankList"></ul>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, onValue, runTransaction, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+// ── Firebase Config ──
+const firebaseConfig = {
+  apiKey: "AIzaSyDFcXsQnW9xhPUUDWu1-Gg_Hp_7PtAhog4",
+  authDomain: "vote214-6a0eb.firebaseapp.com",
+  databaseURL: "https://vote214-6a0eb-default-rtdb.firebaseio.com",
+  projectId: "vote214-6a0eb",
+  storageBucket: "vote214-6a0eb.firebasestorage.app",
+  messagingSenderId: "194501459411",
+  appId: "1:194501459411:web:ab61744048cab4dd700326"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// ── Constants ──
+const TOTAL_VOTES = 50;
+const CAT_COLORS = { A:"#b5762a", B:"#1a6b5a", C:"#7a4a1e", D:"#943028", E:"#1a5276", F:"#5b2c7a", G:"#1a4a5a" };
+const CATEGORIES = [
+  { id:"A", name:"心態與成長", emoji:"🌱" },
+  { id:"B", name:"職場與工作", emoji:"💼" },
+  { id:"C", name:"溝通與人際", emoji:"🤝" },
+  { id:"D", name:"情緒與自我管理", emoji:"🧘" },
+  { id:"E", name:"學習與行動力", emoji:"⚡" },
+  { id:"F", name:"人生哲學", emoji:"🌙" },
+  { id:"G", name:"家庭與教養", emoji:"🏡" },
+];
+const QUOTES = [
+  {id:4,cat:"A",first:"人不會沒有天份，",body:"如果你覺得沒有天份，\n應該是你一直都很混。"},
+  {id:5,cat:"A",first:"找出內心的那股熱情，",body:"才能擁有持續前進的動力。\n如果暫時失去內部熱情，\n就先把時間花在喜歡的事情。"},
+  {id:6,cat:"A",first:"想越過人生的牆，",body:"就從自己開始勉強。\n沒有翻不過去的牆，\n除非你自己根本不想變強。"},
+  {id:10,cat:"A",first:"人生贏了一次可以開心，",body:"輸了一次也別太在意。\n贏也可以輸也可以，\n目的都是造就下次更好的你。"},
+  {id:16,cat:"A",first:"自古以來留存最久的物種，",body:"從來就不是最強或最大的，\n而是適應的最快。"},
+  {id:26,cat:"A",first:"挫折後的反省，",body:"才會有深刻的覺醒。\n沒有重大失落的打擊\n不會有重大成長的契機。"},
+  {id:30,cat:"A",first:"許多人碰到的事情都一樣，",body:"只因為不同的選擇，\n改變了未來不同的模樣。"},
+  {id:32,cat:"A",first:"大部分的絕境不是沒有路走，",body:"而是你以為沒有路可以走。\n柳暗花明不會讓每個人看到，\n最壞的發生後接下來只會好轉。"},
+  {id:36,cat:"A",first:"自古以來的成功者，",body:"身上最不缺的就是傷疤。\n真正的強者從來不討論公平，\n他們只花時間苦練絕對的實力。"},
+  {id:37,cat:"A",first:"人最難的就是堅持，",body:"最容易的就是放棄。\n如果你曾經放棄100次，\n為什麼不乾脆堅持 1 次？"},
+  {id:41,cat:"A",first:"別認為自己足夠，",body:"厲害的人比想像中更多。"},
+  {id:43,cat:"A",first:"人生的成熟，必須靠開竅，",body:"人生的開竅，只能靠跌倒。"},
+  {id:45,cat:"A",first:"年輕時可以衝一波，",body:"成熟時記得想一下。\n年輕時可以義無反顧，\n成熟時別忘了拿出深度。"},
+  {id:56,cat:"A",first:"危機就是一次次的檢定考，",body:"通過後你的評價會越來越高。"},
+  {id:68,cat:"A",first:"成功幾乎沒有捷徑，",body:"如果你覺得很快就到達目的地，\n多半是你內心的幻影，\n騙不了別人只能騙你。"},
+  {id:82,cat:"A",first:"現在遇見的很多不如意，",body:"都在造就未來的芳香濃郁。\n別去挑剔你遭遇的困難事，\n它正提供你闖下一關的鑰匙。"},
+  {id:85,cat:"A",first:"靠關係的讓人生氣，",body:"闖出來的讓人服氣，\n用自己的實力勇氣，\n打下屬於自己的一方天地。"},
+  {id:88,cat:"A",first:"酒香是時間的淬煉，",body:"人強是不斷地苦練。\n別只聽別人的成功往事，\n打造你獨一無二的故事。"},
+  {id:92,cat:"A",first:"誰沒有故事，只是精不精彩。",body:"一帆風順，只能叫正常過程。\n衝突起伏，才能算精彩人生。"},
+  {id:97,cat:"A",first:"想要成功的人，",body:"遇到改變就選擇挑戰。\n想要輕鬆的人，\n遇到改變只抱怨無奈。"},
+  {id:98,cat:"A",first:"把一手好牌打贏，只是本能，",body:"把一手爛牌打贏，才是本事。"},
+  {id:99,cat:"A",first:"挫折土壤孕育出來的花束，",body:"才能餐風飲露，芳香無數。"},
+  {id:100,cat:"A",first:"如果你不花時間去習慣挫折。",body:"那麼你就得花更多時間，\n去克服挫折後造成的不習慣。"},
+  {id:106,cat:"A",first:"人生的收穫通常不在主道路，",body:"而在於不經意繞出去的岔路。\n人生從來不怕沒準備好，\n只怕心態不停的變老。"},
+  {id:110,cat:"A",first:"人夠成熟或能創新，",body:"不在年齡而在心境。\n25歲的人未必不夠成熟\n50歲的人未必不能創新。"},
+  {id:114,cat:"A",first:"正向的人，",body:"靠不公平磨練自己。\n負向的人，\n靠不公平折磨自己。"},
+  {id:116,cat:"A",first:"公平很容易造就弱者，",body:"不公平才能養成強者。\n公平的獲勝，會令人尊重\n不公平獲勝，才令人感動。"},
+  {id:120,cat:"A",first:"人會執著於過去一個點，",body:"對於某件事情在意留戀。\n多年成長以後回頭再看從前，\n才發現曾經的執著無需掛念。"},
+  {id:126,cat:"A",first:"可以積極不要心急，",body:"想要快速進步先練好馬步。\n鏡頭照不到的苦練，\n才是成功的重要關鍵。"},
+  {id:133,cat:"A",first:"我才不管世界變成什麼樣子，",body:"但是我可以決定自己變什麼樣子。"},
+  {id:148,cat:"A",first:"你給自己多大的天地，",body:"就會發揮多大的潛力。\n真的沒有人可以困住你，\n能困住你的只有你自己。"},
+  {id:159,cat:"A",first:"成功的技巧就像金礦，",body:"千百年人人都經過它。\n大多數魯蛇都嗤之以鼻，\n持之以恆的你深信不疑。"},
+  {id:163,cat:"A",first:"與其擔心世界變成什麼樣子，",body:"不如先擔心自己變成什麼樣子。\n現在開始就做好準備，\n世界不會等你準備好才改變。"},
+  {id:166,cat:"A",first:"比起過去的起跑點，",body:"現在更重要的是轉折點。\n思考目前最棒的轉折，\n不同的跑道出現不同的人生。"},
+  {id:169,cat:"A",first:"年輕的關鍵不是年紀，",body:"而在於你的內心是否還有活力。\n老化的程度不是年紀，\n而是停止開放成長的心靈。"},
+  {id:170,cat:"A",first:"把失敗的因素拿掉，",body:"就只剩下成功的機會。\n把放棄的因素拿掉，\n就只剩下前進的動力。"},
+  {id:177,cat:"A",first:"沒什麼事情不可能，",body:"多半是自己認為不可能。\n不希望你堅持下去的，\n都來自於你內心的畏懼。"},
+  {id:182,cat:"A",first:"真正成長是懷疑過去的自己，",body:"而非懷念過去的自己。\n懷疑才會不斷前進，\n懷念只會停在過去。"},
+  {id:199,cat:"A",first:"想要讓自己變得更好，",body:"就不要總是覺得自己還好。\n當你把自己的標準降低，\n就別在乎別人開始忽視你。"},
+  {id:203,cat:"A",first:"從不行到很行，",body:"從很行到更行，\n一切都看你自己的決心。"},
+  {id:211,cat:"A",first:"別習慣躲在舒適的高塔裡，",body:"那會讓你找不到真正的自己。\n只有永遠覺得不夠，\n才會不斷設法突破。"},
+  {id:214,cat:"A",first:"人生難免有起有落，",body:"真正值得尊敬的人，\n不是看他在高峰時展現的驕傲，\n而是看他在低谷時接受的訕笑。"},
+  {id:2,cat:"B",first:"花公司的時間，做自己的事情，",body:"不如花公司的時間，學自己的能耐。"},
+  {id:3,cat:"B",first:"舞台上站多久不是重點，",body:"重要的是成為大家的焦點。\n整場跑龍套沒有意義，\n登台雖瞬間，傳頌已千年。"},
+  {id:7,cat:"B",first:"當責學的不是公司期待，",body:"而是自我要求。"},
+  {id:8,cat:"B",first:"老鷹信賴的不是樹枝，",body:"而是自己能翱翔的翅膀。\n職場靠的不是人際關係，\n而是拿出不怕背叛的本領。"},
+  {id:11,cat:"B",first:"想要人前顯貴，",body:"難免人後受罪。\n所有看到的光鮮亮麗，\n背後必定有心酸淚滴。"},
+  {id:21,cat:"B",first:"把事做完幾乎人人都會，",body:"重點在於有沒有把事做好。\n做完只是對公司有交代，\n做好才是對自己有交代。"},
+  {id:24,cat:"B",first:"你的價值在於做出來的成就，",body:"而不是究竟在社會待了多久。\n會說不會做，\n很難佩服你的地位。"},
+  {id:34,cat:"B",first:"一般的人，",body:"只會怪別人幫他找麻煩。\n優秀的人，\n會每天不斷地找自己麻煩。"},
+  {id:40,cat:"B",first:"向上溝通不要覺得困難，",body:"只要注意一個重點，\n向上溝通，不是改變老闆，\n是改變老闆對你的態度。"},
+  {id:44,cat:"B",first:"真正想成功的人，",body:"都是常找自己麻煩的人。\n麻煩就像檢測儀，\n幫我們看出更多不足的自己。"},
+  {id:54,cat:"B",first:"與其花公司的時間，",body:"做自己的事情。\n不如花公司的時間，\n學自己的本領。"},
+  {id:58,cat:"B",first:"職場有時候別太客氣，",body:"自己好，別只有自己知道。\n真正的千里馬不要孤芳自賞，\n不妨大膽走向你的伯樂。"},
+  {id:76,cat:"B",first:"裝模作樣的主管，只會說往事，",body:"令人佩服的主管才能拿出真本事。"},
+  {id:86,cat:"B",first:"聲音可以讓人轉過來，",body:"內容才能讓人聽進去。\n職稱只能讓人走過來，\n稱職才能讓人聽進去。"},
+  {id:103,cat:"B",first:"想好事情的先後順序，",body:"才能幫助你的做事效率。\n每天做事情的順位，\n決定你未來的地位。"},
+  {id:107,cat:"B",first:"拖延者只會說等我有空，",body:"執行者只習慣立刻去做。\n人生除了忙，只有更忙\n別把時間花在不是你的戰場。"},
+  {id:108,cat:"B",first:"對的方法可以提高自己的身價，",body:"做不熟悉的事，找方法。\n做熟悉的事，換方法。"},
+  {id:109,cat:"B",first:"有目標的5公里，",body:"勝過沒目標的1公里。\n人生不怕忙，\n但是怕忙得沒有方向。"},
+  {id:129,cat:"B",first:"當你在打發時間的時候，",body:"其實也打發了自己。\n重視生活並沒有不對，\n只是生活不該是一種頹廢。"},
+  {id:130,cat:"B",first:"請學會降低權力，提升影響力。",body:"最棒的影響力，就是\n用真正平等和尊重的態度，\n和對方討論每一件事情。"},
+  {id:142,cat:"B",first:"習慣檢討和批評的人，",body:"不見得讓別人看到你的好，\n反而讓更多人看到你的不好。"},
+  {id:145,cat:"B",first:"請別急著換工作崗位，",body:"除非你覺得已經百分百學會。\n請在公司搞懂最精華的3%，\n你才能學會真正的專業頂尖。"},
+  {id:147,cat:"B",first:"頭銜需要實力相陪，",body:"才會贏得真正敬佩。\n別處心積慮的贏得頭銜，\n卻從頭到尾遭受人嫌。"},
+  {id:155,cat:"B",first:"如果你工作常碰到煩惱，",body:"不妨當成遊戲換的視角，\n每個角色的出現都有用意，\n這一局結束後你就會明瞭。"},
+  {id:162,cat:"B",first:"出發前請先選好你的路，",body:"先規劃你的人生地圖，\n如果前進了方向錯誤，\n再怎麼加速也沒有幫助。"},
+  {id:173,cat:"B",first:"看事情要看大方向，",body:"帶好屬下要觀察小地方。\n把魄力和氣勢留給外人，\n用關心和體貼照顧同仁。"},
+  {id:176,cat:"B",first:"95%的人為現在而學，",body:"5%的人為未來而練。\n如果你認為學問可以用很久，\n通常是你周遭有學問的人不多。"},
+  {id:181,cat:"B",first:"如果你希望將來很值錢，",body:"請拿出同等值的信念。\n別人想付多少錢是看他甘願，\n你能值多少錢就看你表現。"},
+  {id:185,cat:"B",first:"輕鬆應對，不是毫不在乎，",body:"而是依靠背後的苦練無數。"},
+  {id:189,cat:"B",first:"幕前有多完美成功，",body:"幕後就要做多少苦工。\n所有舞台的喝采掌聲，\n都來自後台的苦練熱身。"},
+  {id:191,cat:"B",first:"世上沒有完美的職位，",body:"只看你能發揮多少智慧。\n職位只是職場的虛名，\n中間的體會才是永遠的回味。"},
+  {id:194,cat:"B",first:"如果願意改變，",body:"還能保有舞台空間。\n如果不願改變，\n被取代的考量就只剩時間。"},
+  {id:207,cat:"B",first:"自主是你該有的權力，",body:"自律是你該有的能力。\n沒有控制自己的能力，\n別急著一直跟別人要權力。"},
+  {id:208,cat:"B",first:"外表的效期，受限青春，",body:"頭腦的效期，終其一生。"},
+  {id:209,cat:"B",first:"再累也別被看出疲憊。",body:"越成功的人其實越累，\n只是不讓你看到他的疲憊。"},
+  {id:210,cat:"B",first:"企圖心不是要征服世界，",body:"而是要實踐自己的理念。"},
+  {id:9,cat:"C",first:"感謝你的貴人提拔你，",body:"感恩你的小人打擊你。\n沒有提拔就不會爬得高，\n沒有打擊就不會站得穩。"},
+  {id:17,cat:"C",first:"受人點滴恩惠，",body:"不會回報的是正常人，\n會回報的是有心人。"},
+  {id:18,cat:"C",first:"人通常寧可花費三倍時間，",body:"企圖改變對方，\n卻不願意花費一倍時間，\n好好改變自己。"},
+  {id:28,cat:"C",first:"你和誰在一起，決定了，",body:"接下來成為什麼樣的你。"},
+  {id:33,cat:"C",first:"大多數的施捨，",body:"都是拿出家裡吃不下的。\n真正令我們佩服的，\n是家裡不夠，還願意分享。"},
+  {id:38,cat:"C",first:"你的語氣，決定對方的口氣，",body:"不想看臭臉，就別先擺出來。"},
+  {id:39,cat:"C",first:"急著就事論事，",body:"反而容易出事，\n要解決事情前，\n先解決心情。"},
+  {id:46,cat:"C",first:"你以為在爭執「是非對錯」，",body:"其實在乎的是「個人感受」。\n爭吵的表面上都是事情，\n事情的背後說穿都是心情。"},
+  {id:52,cat:"C",first:"適合你的圈子，",body:"從來不是讓你過得舒適。\n能夠讓你耳目一新的圈子，\n才能幫你自己不斷增值。"},
+  {id:67,cat:"C",first:"每天最棒的學習就是，",body:"試著隨意找出3個人，\n和每個人都能聊3分鐘，\n並且每人產出3個心得。"},
+  {id:70,cat:"C",first:"找出家人的頻率，",body:"話語才能切中標的。\n別聊自己想聊的，\n要聊對方聽得進去的。"},
+  {id:71,cat:"C",first:"別只是羨慕而已，",body:"也請付出你的心力。"},
+  {id:72,cat:"C",first:"如果沒把窗簾拉開，",body:"要怎麼責怪陽光進不來？\n想要得到別人的關懷，\n那就走出去，或者把門打開。"},
+  {id:77,cat:"C",first:"當你堅持自己的頻率，",body:"只會讓世界逐漸遠去。\n當你放寬自己的頻率，\n所有的美好就會向你靠近。"},
+  {id:78,cat:"C",first:"在別人需要幫忙的時候舉手，",body:"你也需要幫忙的時候，\n才會有人揮手。"},
+  {id:91,cat:"C",first:"對事要精明快速，",body:"對人要和緩寬容。\n聰明的人只能解決事情，\n智慧的人可以安定人心。"},
+  {id:144,cat:"C",first:"溝通的重心從來不在內容，",body:"表現得態度和神情才是關鍵。\n對方除了聽我們的內容，\n更在乎我們真正的內心。"},
+  {id:149,cat:"C",first:"和別人過不去沒意義，",body:"因為對方心裡不見得在乎你。\n和別人賭氣也沒意義，\n因為真正耽誤的只有你自己。"},
+  {id:165,cat:"C",first:"成功不是只靠自己，",body:"請學會感恩周遭的環境。\n時時保持謙虛與謝意，\n貴人才會優先看到你。"},
+  {id:171,cat:"C",first:"我們生氣的常常不是事情，",body:"而是對方出現的反應。\n停留在對方的反應，\n只是跟自己過不去。"},
+  {id:172,cat:"C",first:"說服不是大講道理，",body:"而是讓對方能認同你。\n專心和對方聊大事，\n不如關心對方在乎的小事。"},
+  {id:179,cat:"C",first:"團隊的融合需要破冰，",body:"放下身段才能交心。\n能做得到的請拿出實力，\n做不到的請拿出誠意。"},
+  {id:193,cat:"C",first:"科技方便了聯繫，",body:"別讓心靈產生更多距離。\n放下手機走到面前關心，\n人際互動才有溫馨的感動。"},
+  {id:195,cat:"C",first:"孤獨和冷漠不是藉口，",body:"陪伴與關懷才是溫柔。\n只要我們願意伸出手，\n沒有人應該孤單獨走。"},
+  {id:202,cat:"C",first:"不會感恩的人，",body:"給自己千百種理由，\n會感恩的人，\n哪怕只是一個小行動。"},
+  {id:204,cat:"C",first:"別浪費時間不屑，",body:"多花點時間不懈，\n不想浪費時間的事，\n說聲謝謝就好。"},
+  {id:1,cat:"D",first:"抱怨是本能，解決是本事。",body:"與其大聲抱怨，不如動手解決。"},
+  {id:20,cat:"D",first:"指責和憤怒可以宣洩情緒，",body:"卻無法解決事情。\n或許贏了場面，\n其實輸了永遠。"},
+  {id:25,cat:"D",first:"人生永遠羨慕得不到的，",body:"卻未必珍惜手邊有的。\n幸福不是追求，而是擁有。"},
+  {id:29,cat:"D",first:"無解的常常不是問題，",body:"而是不想解決的自己。\n如果常常說可是，\n可能都是你不想解決的事。"},
+  {id:35,cat:"D",first:"難過的感受別往心裡去，",body:"能不能跨過這道關卡，\n就看你在一段時間後，\n會執著在意，還是雲淡風輕？"},
+  {id:57,cat:"D",first:"人生的壓力永遠不會減少，",body:"但是要學習讓快樂增加。"},
+  {id:62,cat:"D",first:"情緒是自己的，",body:"管不好沒人能幫你。\n別贏了一時的場面，\n卻輸了未來的永遠。"},
+  {id:65,cat:"D",first:"別一直羨慕得不到的，",body:"請先在乎手邊有的。\n幸福不是追求，\n而是珍惜自己擁有的。"},
+  {id:73,cat:"D",first:"每天都在期待回報，",body:"從來不會讓你變好。\n當我們覺得上天不公，\n只會增加自己的苦惱。"},
+  {id:75,cat:"D",first:"人都有情緒，",body:"很難忍住一口氣，\n其實真正阻擋你前進的，\n都是你的忍不住的脾氣。"},
+  {id:80,cat:"D",first:"不管今天心情好不好，",body:"請留一點時間給它發酵。\n只有掌握自己情緒的邊界，\n你才有資格繼續挑戰這個世界。"},
+  {id:81,cat:"D",first:"喝杯咖啡，抬頭仰望雲朵，",body:"何必在乎，雲來雲走，\n漫步海邊，靜看餘暉燈火，\n何必在乎，潮去潮落。"},
+  {id:83,cat:"D",first:"快樂的人很難抱怨，",body:"抱怨的人很難快樂\n整天唉聲嘆氣的人，\n很難聽到機會在敲門。"},
+  {id:87,cat:"D",first:"用泰然自若的神情，",body:"看世間變化的嘴臉。\n用輕鬆從容的態度，\n看浮沉名利的世界。"},
+  {id:90,cat:"D",first:"社群的內容看看就好，",body:"太過在意只會徒增煩惱。\n不必把自己充實的生命，\n花在別人頹廢的生活上。"},
+  {id:93,cat:"D",first:"心情的庫存是有限的，",body:"先想著快樂和開心，\n就放不下煩惱和傷心。\n先想什麼，就先放進什麼。"},
+  {id:96,cat:"D",first:"不管今天多辛苦，",body:"我的心情我做主。"},
+  {id:117,cat:"D",first:"昨天再精彩，都已經過去，",body:"今天再辛苦，還是要繼續。"},
+  {id:131,cat:"D",first:"如果每天過得順暢，",body:"請當作一種生活。\n如果今天不那麼順暢，\n不妨當作一種修行。"},
+  {id:132,cat:"D",first:"我無法掌握今天的環境，",body:"但是可以調整自己的心境。\n享受順境需要靠運氣，\n出現逆境其實是種福氣。"},
+  {id:134,cat:"D",first:"請開始培養得分心態，",body:"凡事只看有利於我的內容。\n別讓扣分心態影響心情，\n別因為我的小瑕疵，喪失信心。"},
+  {id:135,cat:"D",first:"如果你覺得周遭走得太慢，",body:"會不會是因為你走得太急？\n請讓自己的頭腦走在前面，\n別讓自己的嘴巴搶在前面。"},
+  {id:137,cat:"D",first:"如果我的心胸夠大，",body:"放進去的都只是小事。\n如果我的心胸不夠寬廣，\n每一件放進去的都變大事。"},
+  {id:146,cat:"D",first:"讓好的事情往心裡去，",body:"讓壞的事情往雲裡去，\n要往心裡或是雲裡，\n都是你一念之間的決定。"},
+  {id:150,cat:"D",first:"有時候生活跟棒球賽一樣，",body:"某一個球揮棒落空的時候，\n你絕對不會停下來氣餒，\n立刻準備下一球才是重點。"},
+  {id:174,cat:"D",first:"只要情緒高漲，智商就會下降。",body:"如果情緒商數足夠穩定，\n職場的交流互動才稱心如意。"},
+  {id:175,cat:"D",first:"越在乎，時間過越慢，",body:"不在乎，時間就飛轉。\n人生的歲月很短，\n不該在乎的就放下別管。"},
+  {id:183,cat:"D",first:"牽掛過去擔憂未來，",body:"無法釋懷，只會造成傷害。\n別想那麼多，只把握現在\n才不會讓執著變成阻礙。"},
+  {id:184,cat:"D",first:"一句話能解何必悶，一陣子能解何必愁。",body:"打開自己的心門，不必往心裡去傷神。"},
+  {id:205,cat:"D",first:"運用正面的賭氣，",body:"強化瞬間火力，\n突破不可能的難題。"},
+  {id:212,cat:"D",first:"自己選的路，",body:"自己就要能撐住。\n學會讓快樂和壓力共處，\n你的人生才能翩翩起舞。"},
+  {id:13,cat:"E",first:"與其給自己一萬個藉口，",body:"不如給自己一個行動的理由。"},
+  {id:14,cat:"E",first:"想得再多也到不了終點，",body:"走的再慢遲早也會到終點。\n只要踏出第一步，\n就更接近目標了。"},
+  {id:15,cat:"E",first:"如果想找出你真正的強項。",body:"你必須每天都做得不一樣。"},
+  {id:22,cat:"E",first:"許多人離開校園就不再學習，",body:"其實畢業前學的只是基本配備。\n畢業趕快用，用完再去學，\n才能讓自己不斷的成長。"},
+  {id:23,cat:"E",first:"當你在說的時候，",body:"你只是講出你會的。\n當你在聽的時候，\n你才能學到你不會的。"},
+  {id:31,cat:"E",first:"寧願跌跌撞撞摸索，",body:"也不要從從容容求助。"},
+  {id:48,cat:"E",first:"不要覺得很好，但是越做越糟。",body:"寧可碰到很糟，但是越做越好。"},
+  {id:49,cat:"E",first:"拿出膽識，少說但是..",body:"未來才能說精彩的故事。"},
+  {id:50,cat:"E",first:"每天做一件不擅長的事情，",body:"基於什麼動機都可以，\n從當中有一些體會學習，\n你的今天就算不虛此行。"},
+  {id:60,cat:"E",first:"想得再多，長路仍然漫漫，",body:"只要起步，距離就只剩一半。"},
+  {id:63,cat:"E",first:"任何投資都有賺有賠，",body:"唯獨學習是穩賺不賠。\n投資錯誤會血本無歸，\n投資自己是終身不虧。"},
+  {id:64,cat:"E",first:"當你在說的時候，只是講出你會的。",body:"當你在聽的時候，才能學到自己不會的。"},
+  {id:74,cat:"E",first:"想要破解，先去了解，",body:"別問答案，請找技巧。\n問到答案只能解決這一題，\n學到技巧才能解決每一題。"},
+  {id:84,cat:"E",first:"人們的進步，",body:"通常不是好習慣越來越多，\n而是壞習慣越來越少。"},
+  {id:94,cat:"E",first:"練功的機會其實每天都有，",body:"翻過面前的每一道牆，\n你才能讓自己比昨天更強。"},
+  {id:95,cat:"E",first:"人生拼圖來自於每次的經驗，",body:"一個事件獲得拼圖一片，\n別放棄每個碎片的機會，\n才會讓你的拼圖完整呈現。"},
+  {id:101,cat:"E",first:"與其不斷說Why，",body:"不如不斷說why not！\n一般的人只會說為什麼要？\n頂尖的人才會說為什麼不！"},
+  {id:104,cat:"E",first:"你可以慢慢等你自己，",body:"但是世界不會等你。"},
+  {id:111,cat:"E",first:"別歸咎於皇命和歹命，",body:"找出自己的天命和使命。"},
+  {id:112,cat:"E",first:"凡人先看好處，才做事情。",body:"智者先做事情，再看好處。"},
+  {id:113,cat:"E",first:"別在乎別人，有多少比我好的，",body:"趕快找出，我比別人更好的。"},
+  {id:119,cat:"E",first:"只想輕鬆地學習，",body:"只會造成未來的嘆息。\n如果天天錙銖必較，\n只會把自己越做越小。"},
+  {id:127,cat:"E",first:"人不會沒有時間，只會沒有意願，",body:"沒有能不能，只有要不要。"},
+  {id:136,cat:"E",first:"每天如果想進步，",body:"請拿今天學習的新觀點，\n去否定昨天的舊觀念，\n讓自己比昨天進步一點點。"},
+  {id:138,cat:"E",first:"如果碰到高手什麼都會，",body:"可能是因為他過去什麼都學，\n與其花時間佩服別人，\n不如花時間強化自己。"},
+  {id:139,cat:"E",first:"學完之後不用就等於沒用，",body:"換不同的方法去用才會更有用。\n有用，就會有用。"},
+  {id:152,cat:"E",first:"練習用今天去懷疑昨天，",body:"用現在來修正過去的觀點。\n如果你堅信自己都是對的，\n那麼表示你一直停留在昨天。"},
+  {id:161,cat:"E",first:"別用直覺解決問題，",body:"小心陷入無解的泥地。\n建構出自己的思維邏輯，\n你的層次才能不斷升級。"},
+  {id:164,cat:"E",first:"世界一日千里，",body:"別一直寬容自己。\n每天都活得跟昨天一樣，\n不會出現你期待的夢想。"},
+  {id:167,cat:"E",first:"別逃避困難的題目，",body:"那是成功的捷徑之路。\n險惡的外表看來難以進入，\n突破後才發現一路坦途。"},
+  {id:168,cat:"E",first:"與其不做而後悔，",body:"就算真的去做也別怕氣餒。\n覆盤思考的過程才是重點，\n真的想通之後就無所畏。"},
+  {id:186,cat:"E",first:"別輕言放棄學習的專業，",body:"未來的專業會越來越多元。\n一般的專業別人不懂就好，\n頂尖的專業需要千錘百鍊。"},
+  {id:197,cat:"E",first:"別只羨慕別人駕輕就熟，",body:"是因為我們沒看到他背後的奮鬥。\n別只是在一旁羨慕而已，\n就算照做也能增加自己的實力。"},
+  {id:12,cat:"F",first:"渴望而得不到的是壓力，",body:"珍惜已經得到的是幸福。"},
+  {id:19,cat:"F",first:"有人默默接受任憑安排，",body:"有人不受擺布極力跳開。\n社會的走向就是一個局，\n接不接受決定你的未來。"},
+  {id:42,cat:"F",first:"真理就是不管你怎麼走，",body:"最終都會有同樣的感受。"},
+  {id:47,cat:"F",first:"不要只活在自己的世界裡，",body:"周遭的人不會一直配合你。\n如果覺得周遭都是陰天，\n就離開走向有陽光的地方。"},
+  {id:51,cat:"F",first:"人生有許多不同的遭遇，",body:"重要的是別急著放棄。\n關上門不是最好的選擇，\n不如想想該如何取捨。"},
+  {id:55,cat:"F",first:"別期待所有人都懂你，",body:"想法自己知道就行。\n你不是為其他人而活，\n可以決定每天怎麼過。"},
+  {id:59,cat:"F",first:"生命的意義是增加自我美好，",body:"而不是消耗在別人的困擾。\n生活的目的是在投入自我熱情，\n而不是每天擔心自己的不行。"},
+  {id:61,cat:"F",first:"人就像茶葉，要泡出香氣，",body:"只有兩種選擇，\n選擇熱泡，需要承受壓力。\n選擇冷泡，需要時間累積。"},
+  {id:66,cat:"F",first:"人生沒有困難度，",body:"就不會有精彩度。\n如果只想要輕鬆的人生，\n就別一直期待別人的掌聲。"},
+  {id:69,cat:"F",first:"這個世界每天都不一樣，",body:"危機已不是單純的想像，\n我們無法避免瘋狗浪，\n只能先儲備求生的能量。"},
+  {id:79,cat:"F",first:"我們無法避免狂風暴雨，",body:"但是絕對不要放棄自己。"},
+  {id:89,cat:"F",first:"人也許無法選擇環境，",body:"但是可以選擇不急著逃避。\n刻意磨練不足的課題，\n這是最高境界的借力使力。"},
+  {id:102,cat:"F",first:"成長的蛻變就是，",body:"將難過的事輕鬆的說出來，\n將緊張的事淡定的說出來，\n將悲慘的事微笑的說出來。"},
+  {id:105,cat:"F",first:"寧可擁有闖出來的人生，",body:"也不要只有養出來的天真。"},
+  {id:115,cat:"F",first:"順其自然是一種境界，",body:"不是躲在自己的世界。"},
+  {id:118,cat:"F",first:"能夠彌補的，只是錯誤，",body:"不能彌補的，才是錯過。\n人生可以允許錯誤，\n但是盡量避免錯過。"},
+  {id:121,cat:"F",first:"不必每天把時間，",body:"花在觀看或干涉別人的生活上。\n別人如何生活是他自己的事，\n你的生活要有你自己的該有模式。"},
+  {id:122,cat:"F",first:"每個人的生活，",body:"都是獨一無二的畫作。\n不必在乎別人的指指點點，\n只要專注在自己的色彩鮮艷。"},
+  {id:123,cat:"F",first:"冷靜的一面，",body:"請拿來處理事情，\n熱情的一面，\n請拿來對待人心。"},
+  {id:124,cat:"F",first:"讓未來的你，",body:"感謝現在辛苦認真的你。\n不必為誰執著的多做什麼？\n除非對方真的需要你這樣做。"},
+  {id:128,cat:"F",first:"與其開心一下子，",body:"不如正向一輩子。\n運氣可以用一陣子，\n勇氣才能用一輩子。"},
+  {id:140,cat:"F",first:"真正的順其自然不是不做，",body:"而是預判好各種的可能性，\n抓準最佳的時機，一擊命中。"},
+  {id:141,cat:"F",first:"不管你是I人或E人，",body:"千萬不要被框架制約。\n大多數的百萬YouTuber，\n反而都是I人出身。"},
+  {id:143,cat:"F",first:"困難其實是我們的貴人，",body:"它花了很多時間磨練我們，\n結束之後就揚長而去，\n只丟下技巧方法留在我們心底。"},
+  {id:151,cat:"F",first:"上天從來不會虧待你，",body:"覺得沒意義是沒認清自己。\n別急著找出最終的結局，\n先享受每天的精彩遊戲。"},
+  {id:153,cat:"F",first:"網路世界看得永遠是表面，",body:"淬煉自我的底蘊要花時間。\n短期吸睛越來越不困難，\n長期聚焦才是真不簡單。"},
+  {id:154,cat:"F",first:"別活在掌聲的迷幻，",body:"會慢慢失去自我的判斷。\n掌聲和虛名只是過眼雲煙，\n實力和自我內涵才是永遠。"},
+  {id:156,cat:"F",first:"與其抱怨昨天的哀愁，",body:"不如期待今日的練功，\n每天逐漸強大的火候，\n都在幫助你功成名就。"},
+  {id:157,cat:"F",first:"所有事情的成果，",body:"都不見得能夠立即驗收。\n所有的功夫都不會白費，\n只是先別急著去追。"},
+  {id:160,cat:"F",first:"今天的遭遇 由命運決定，",body:"今天的收獲由自己決定。\n真的想改變自己，\n別只是說說而已。"},
+  {id:178,cat:"F",first:"如果你覺得每天都很累，",body:"代表你沒有試著遊戲人間。\n許多事情都可以好好玩味，\n身體可以投入心情別太投入。"},
+  {id:180,cat:"F",first:"與其花時間求完美，",body:"不如先求事情完善。\n完美的人幾乎不會存在，\n故事裡面的偉人，請隨便看看。"},
+  {id:187,cat:"F",first:"曾經花時間做過的事，",body:"都會得到收穫的果實。\n盡己所能的憑藉本意，\n剩下的安排就全看天意。"},
+  {id:190,cat:"F",first:"每天計較得失多少，",body:"只是徒增人生消耗。\n有時候羨慕傻傻不計較的人，\n過程中充滿了我們羨慕的人生。"},
+  {id:192,cat:"F",first:"江湖的渾水難免要蹚，",body:"把它當作必經的修養。\n別總想著置身事外，\n混濁後洗淨就是你的能耐。"},
+  {id:196,cat:"F",first:"別期待所有人都懂你，",body:"真正的重心在你自己。\n把自己的日子過得美麗，\n讓無謂的討論消失在空氣裡。"},
+  {id:198,cat:"F",first:"黑暗中閃爍的燈光，",body:"讓人們永遠充滿著希望。\n別擔心周遭有多黑暗，\n試著讓自己活成一道光。"},
+  {id:200,cat:"F",first:"真正的順其自然是一種境界，",body:"而不是關門躲在自己的世界。\n真正的無為而治不是完全不管，\n而是內心早就做好完整判斷。"},
+  {id:201,cat:"F",first:"不是我能過多好的生活，",body:"而是我能把生活過得多好。"},
+  {id:206,cat:"F",first:"所有的夢想，",body:"都是歲月的日記。\n即使隨著年紀有變化，\n請放在心中不要遺忘它。"},
+  {id:213,cat:"F",first:"決定好了就不要後悔，",body:"努力過的才是最美。\n克服困難的艱辛過程，\n慢慢地讓你無所不能。"},
+  {id:158,cat:"G",first:"想要讓孩子得到更多，",body:"父母就別急著給太多。\n別認為愛他就是讓他無憂無慮，\n其實反而剝奪了孩子成長的能力。"},
+  {id:188,cat:"G",first:"別剝奪小孩參與團隊的機會，",body:"提早學習尊重別人的體會。\n未來的世界不是高興就好，\n教養是父母無可迴避的職責。"},
+];
+
+// ── State ──
+let sharedVotes = {};   // from Firebase { id: count }
+let myVotes = {};       // localStorage { id: true }
+const TOTAL_VOTES = 50;
+let rankFilter = "ALL";
+
+// Load my votes from localStorage
+try {
+  const saved = localStorage.getItem("myvotes214");
+  if (saved) myVotes = JSON.parse(saved);
+} catch(e) {}
+
+function saveMyVotes() {
+  try { localStorage.setItem("myvotes214", JSON.stringify(myVotes)); } catch(e) {}
+}
+
+function myUsed() { return Object.keys(myVotes).length; }
+function myRemaining() { return TOTAL_VOTES - myUsed(); }
+
+// ── Firebase listener ──
+const votesRef = ref(db, "votes");
+onValue(votesRef, (snapshot) => {
+  sharedVotes = snapshot.val() || {};
+  renderAll();
+  updateBar();
+  if (document.getElementById("modalOverlay").classList.contains("active")) renderRanking();
+});
+
+// Show app after first data load
+document.getElementById("loadingScreen").style.display = "none";
+document.getElementById("app").style.display = "block";
+
+// ── Vote handler ──
+window.handleVote = async function(id) {
+  const btn = document.getElementById("vbtn-" + id);
+  if (btn) btn.disabled = true;
+
+  const mine = !!myVotes[id];
+  const delta = mine ? -1 : 1;
+
+  if (!mine && myRemaining() <= 0) {
+    showToast("⚠️ 你的50票已用完！取消已投的票再重新分配。");
+    if (btn) btn.disabled = false;
+    return;
+  }
+
+  // Optimistic local update
+  if (mine) { delete myVotes[id]; }
+  else { myVotes[id] = true; }
+  saveMyVotes();
+  updateCard(id);
+  updateBar();
+
+  // Firebase atomic update
+  document.getElementById("syncingLabel").style.display = "inline";
+  try {
+    const qRef = ref(db, "votes/" + id);
+    await runTransaction(qRef, (current) => {
+      return Math.max(0, (current || 0) + delta);
+    });
+  } catch(e) {
+    showToast("⚠️ 網路錯誤，請重試");
+    // revert
+    if (mine) { myVotes[id] = true; } else { delete myVotes[id]; }
+    saveMyVotes();
+    updateCard(id);
+    updateBar();
+  }
+  document.getElementById("syncingLabel").style.display = "none";
+  if (btn) btn.disabled = false;
+};
+
+// ── Render ──
+function renderAll() {
+  const main = document.getElementById("mainContent");
+  if (main.innerHTML !== "" && main.dataset.built === "1") {
+    // Just update counts
+    QUOTES.forEach(q => updateCard(q.id));
+    return;
+  }
+  main.innerHTML = "";
+  main.dataset.built = "1";
+
+  CATEGORIES.forEach((cat, ci) => {
+    const catQuotes = QUOTES.filter(q => q.cat === cat.id);
+    const sec = document.createElement("section");
+    sec.className = "category";
+    sec.style.animationDelay = ci * 0.05 + "s";
+    sec.id = "cat-sec-" + cat.id;
+
+    sec.innerHTML = `
+      <div class="cat-header">
+        <span class="cat-letter" style="color:${CAT_COLORS[cat.id]}">${cat.id}</span>
+        <span class="cat-title">${cat.emoji} ${cat.name}</span>
+        <span class="cat-total" id="cat-total-${cat.id}" style="display:none"></span>
+        <span class="cat-info" id="cat-info-${cat.id}">${catQuotes.length} 則</span>
+      </div>
+      <div class="quotes-grid" id="grid-${cat.id}"></div>
+    `;
+    main.appendChild(sec);
+
+    const grid = sec.querySelector("#grid-" + cat.id);
+    catQuotes.forEach(q => {
+      const card = document.createElement("div");
+      card.className = "quote-card";
+      card.id = "card-" + q.id;
+      const lines = q.body.split("\n").join("<br>");
+      card.innerHTML = `
+        <div class="q-num">【${q.id}】</div>
+        <div class="q-text"><span class="first">${q.first}</span><br>${lines}</div>
+        <div class="q-footer">
+          <button class="vote-btn" id="vbtn-${q.id}" onclick="handleVote(${q.id})">+ 投票</button>
+          <div class="q-total" id="qtotal-${q.id}"></div>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  });
+}
+
+function updateCard(id) {
+  const card = document.getElementById("card-" + id);
+  const btn = document.getElementById("vbtn-" + id);
+  const totalEl = document.getElementById("qtotal-" + id);
+  if (!card) return;
+
+  const mine = !!myVotes[id];
+  const total = sharedVotes[id] || 0;
+
+  card.className = "quote-card" + (mine ? " voted" : "");
+  if (btn) btn.textContent = mine ? "✓ 已投票" : "+ 投票";
+
+  if (totalEl) {
+    totalEl.innerHTML = total > 0
+      ? `<div class="num">${total}</div><div class="lbl">總票數</div>${mine ? '<div class="mine">✦ 包含你</div>' : ''}`
+      : "";
+  }
+
+  // Update category totals
+  const q = QUOTES.find(x => x.id === id);
+  if (q) {
+    const catQuotes = QUOTES.filter(x => x.cat === q.cat);
+    const catTotal = catQuotes.reduce((s, x) => s + (sharedVotes[x.id] || 0), 0);
+    const myInCat = catQuotes.filter(x => myVotes[x.id]).length;
+    const totalEl2 = document.getElementById("cat-total-" + q.cat);
+    const infoEl = document.getElementById("cat-info-" + q.cat);
+    if (totalEl2) {
+      totalEl2.textContent = "▲ " + catTotal + " 票";
+      totalEl2.style.display = catTotal > 0 ? "inline" : "none";
+    }
+    if (infoEl) infoEl.textContent = catQuotes.length + " 則" + (myInCat > 0 ? " · 我投了 " + myInCat : "");
+  }
+}
+
+function updateBar() {
+  const used = myUsed();
+  const rem = myRemaining();
+  const globalTotal = Object.values(sharedVotes).reduce((a,b)=>a+b,0);
+
+  const remEl = document.getElementById("remainingVal");
+  if (remEl) {
+    remEl.textContent = rem;
+    remEl.className = "val" + (rem <= 10 ? " red" : "");
+  }
+  const usedEl = document.getElementById("usedVal");
+  if (usedEl) usedEl.textContent = used + " / " + TOTAL_VOTES;
+  const gEl = document.getElementById("globalVal");
+  if (gEl) gEl.textContent = "🔥 " + globalTotal;
+  const tEl = document.getElementById("totalVotesDisplay");
+  if (tEl) tEl.textContent = globalTotal;
+}
+
+// ── Modal ──
+window.openModal = function() {
+  renderRanking();
+  document.getElementById("modalOverlay").classList.add("active");
+};
+window.closeModal = function() {
+  document.getElementById("modalOverlay").classList.remove("active");
+};
+window.closeModalOutside = function(e) {
+  if (e.target === document.getElementById("modalOverlay")) window.closeModal();
+};
+window.setFilter = function(f) {
+  rankFilter = f;
+  renderRanking();
+};
+
+function renderRanking() {
+  const filterBar = document.getElementById("filterBar");
+  const rankList = document.getElementById("rankList");
+  const modalSub = document.getElementById("modalSub");
+
+  const filters = [{id:"ALL",label:"全部"}, ...CATEGORIES.map(c=>({id:c.id,label:c.id+"·"+c.name}))];
+  filterBar.innerHTML = filters.map(f =>
+    `<button class="f-btn${rankFilter===f.id?' active':''}" onclick="setFilter('${f.id}')">${f.label}</button>`
+  ).join("");
+
+  const ranked = QUOTES
+    .filter(q => rankFilter === "ALL" || q.cat === rankFilter)
+    .map(q => ({...q, total: sharedVotes[q.id] || 0}))
+    .filter(q => q.total > 0)
+    .sort((a,b) => b.total - a.total);
+
+  const globalTotal = Object.values(sharedVotes).reduce((a,b)=>a+b,0);
+  modalSub.textContent = `全體累計 ${globalTotal} 票 · 顯示 ${ranked.length} 則有票項目`;
+
+  if (ranked.length === 0) {
+    rankList.innerHTML = `<div class="no-votes">尚未有人投票，快去投你喜歡的金句！</div>`;
+    return;
+  }
+
+  rankList.innerHTML = ranked.map((q, i) => {
+    const cat = CATEGORIES.find(c => c.id === q.cat);
+    const medal = i===0?"🥇":i===1?"🥈":i===2?"🥉":null;
+    const mine = !!myVotes[q.id];
+    return `
+      <li class="rank-item" style="animation-delay:${i*0.03}s">
+        <div class="rank-num${medal?' top':''}">${medal||(i+1)}</div>
+        <div class="rank-content">
+          <div class="rank-qnum">【${q.id}】</div>
+          <div class="rank-text">${q.first} ${q.body.split("\n")[0]}</div>
+          <div class="rank-cat" style="color:${CAT_COLORS[q.cat]}">${cat?.emoji} ${cat?.name}${mine?" · ✦ 我也投了":""}</div>
+        </div>
+        <div class="rank-votes"><div class="n">${q.total}</div><small>票</small></div>
+      </li>
+    `;
+  }).join("");
+}
+
+// ── Toast ──
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2800);
+}
+</script>
+</body>
+</html>
